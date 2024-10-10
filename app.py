@@ -18,35 +18,35 @@ def get_db():
         db.close()
 
 
-@app.route('/get_all', methods=['GET'])
+@app.route('/', methods=['GET'])
 def get_all_todos():
     db = next(get_db())
     todos = db.query(Todo).all()
     todos_list = [
-        {"id": todo.id, "title": todo.title, "complete": todo.complete}
+        {"id": todo.id, "text": todo.text, "completed": todo.completed}
         for todo in todos
     ]
     return jsonify(todos_list), 200
 
 
-@app.route('/add', methods=['POST'])
+@app.route('/', methods=['POST'])
 def add_todo():
     db = next(get_db())
     data = request.get_json()
 
-    if not data or 'title' not in data:
-        abort(400, description="O campo 'title' é obrigatório")
+    if not data or 'text' not in data:
+        abort(400, description="O campo 'text' é obrigatório")
 
-    title = data['title']
-    complete = data.get('complete', False)  # padrão = False
+    text = data['text']
+    completed = data.get('completed', False)  # padrão = False
 
-    if not isinstance(title, str) or not title.strip():
-        abort(400, description="O campo 'title' deve ser uma string não vazia")
+    if not isinstance(text, str) or not text.strip():
+        abort(400, description="O campo 'text' deve ser uma string não vazia")
 
-    if not isinstance(complete, bool):
-        abort(400, description="O campo 'complete' deve ser um valor booleano")
+    if not isinstance(completed, bool):
+        abort(400, description="O campo 'completed' deve ser um valor booleano")
 
-    new_todo = Todo(title=title.strip(), complete=complete)
+    new_todo = Todo(text=text.strip(), completed=completed)
 
     db.add(new_todo)
     db.commit()
@@ -54,12 +54,12 @@ def add_todo():
 
     return jsonify({
         "id": new_todo.id,
-        "title": new_todo.title,
-        "complete": new_todo.complete
+        "text": new_todo.text,
+        "completed": new_todo.completed
     }), 201  # criado com sucesso
 
 
-@app.route('/update/<int:todo_id>', methods=['PUT'])
+@app.route('/<int:todo_id>', methods=['PUT'])
 def update_todo(todo_id):
     db = next(get_db())
     todo = db.query(Todo).filter(Todo.id == todo_id).first()
@@ -69,24 +69,24 @@ def update_todo(todo_id):
 
     data = request.get_json()
 
-    if 'title' in data:
-        todo.title = data['title']
-    if 'complete' in data:
-        if isinstance(data['complete'], bool):
-            todo.complete = data['complete']
+    if 'text' in data:
+        todo.text = data['text']
+    if 'completed' in data:
+        if isinstance(data['completed'], bool):
+            todo.completed = data['completed']
         else:
-            abort(400, description="'complete' deve ser um valor booleano")
+            abort(400, description="'completed' deve ser um valor booleano")
 
     db.commit()
 
     return jsonify({
         "id": todo.id,
-        "title": todo.title,
-        "complete": todo.complete
+        "text": todo.text,
+        "completed": todo.completed
     }), 200
 
 
-@app.route('/delete/<int:todo_id>', methods=['DELETE'])
+@app.route('/<int:todo_id>', methods=['DELETE'])
 def delete_todo(todo_id):
     db = next(get_db())
     todo = db.query(Todo).filter(Todo.id == todo_id).first()
