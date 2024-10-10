@@ -35,16 +35,16 @@ def add_todo():
     data = request.get_json()
 
     if not data or 'text' not in data:
-        abort(400, description="O campo 'text' é obrigatório")
+        return jsonify({ "error": "O campo 'text' é obrigatório" }), 400
 
     text = data['text']
     completed = data.get('completed', False)  # padrão = False
 
     if not isinstance(text, str) or not text.strip():
-        abort(400, description="O campo 'text' deve ser uma string não vazia")
+        return jsonify({ "error": "O campo 'text' deve ser uma string não vazia" }), 400
 
     if not isinstance(completed, bool):
-        abort(400, description="O campo 'completed' deve ser um valor booleano")
+        return jsonify({ "error": "O campo 'completed' deve ser um valor booleano" }), 400
 
     new_todo = Todo(text=text.strip(), completed=completed)
 
@@ -65,7 +65,7 @@ def update_todo(todo_id):
     todo = db.query(Todo).filter(Todo.id == todo_id).first()
 
     if not todo:
-        abort(404, description=f"Tarefa com id {todo_id} não encontrada")
+        return jsonify({ "error": f"Tarefa com id {todo_id} não encontrada" }), 404
 
     data = request.get_json()
 
@@ -75,7 +75,7 @@ def update_todo(todo_id):
         if isinstance(data['completed'], bool):
             todo.completed = data['completed']
         else:
-            abort(400, description="'completed' deve ser um valor booleano")
+            return jsonify({ "error": "'completed' deve ser um valor booleano" }), 400
 
     db.commit()
 
@@ -92,7 +92,7 @@ def delete_todo(todo_id):
     todo = db.query(Todo).filter(Todo.id == todo_id).first()
 
     if not todo:
-        abort(404, description=f"Tarefa com id {todo_id} não encontrada")
+        return jsonify({ "error": f"Tarefa com id {todo_id} não encontrada" }), 404
 
     db.delete(todo)
     db.commit()
